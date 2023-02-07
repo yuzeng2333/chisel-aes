@@ -12,9 +12,11 @@ class AesEngIntf (val engNum: Int=1) extends Bundle {
   val cipher = Output(Valid(Vec(engNum, UInt(128.W))))
 }
 
+
+
 // user should not assert startKeyExp when keyExpReady=false or encEngReady=false or decEngReady=false
 // user should not assert text.valid when encEngReady=false, and should not assert cipher.valid when decEngReady=false
-class AesTop(Nk: Int=4, pipelineEng:Boolean, encEngNum: Int=1, decEngNum: Int=1) extends Module {
+class AesTop(Nk: Int=4, pipelineEng:Boolean=true, encEngNum: Int=1, decEngNum: Int=1) extends Module {
   val io = IO(new Bundle {
     val Nr = Nk+6
     val encIntf = new AesEngIntf(encEngNum)
