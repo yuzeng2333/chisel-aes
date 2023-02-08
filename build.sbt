@@ -37,12 +37,9 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-
-addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % "3.5.3" cross CrossVersion.full)
-
 // Provide a managed dependency on X if -DXVersion="" is supplied on the command line.
 val defaultVersions = Map(
-  "chisel3" -> "3.1.+",
+  "chisel3" -> "3.3.+",
   "chisel-iotesters" -> "1.2.+",
   )
 
