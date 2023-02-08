@@ -1,6 +1,11 @@
 package aes
-import chisel3._
 
-object AesTopGen extends App {
-  (new chisel3.stage.ChiselStage).emitVerilog(new AesTop)
+import chisel3.stage.ChiselStage
+
+object AesGen extends App {
+  val myverilog = (new ChiselStage).emitVerilog(
+    new AesTop(),
+
+    Array("--target-dir", "output/")
+    )
 }
