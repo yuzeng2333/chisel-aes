@@ -79,10 +79,12 @@ class AesTop(Nk: Int=4, pipelineEng:Boolean=true, encEngNum: Int=1, decEngNum: I
   io.keyExpReady := calcKeyExpReady(startKeyExp, expKeyValid)
 
   io.encIntf.cipher.valid := ShiftRegister(io.encIntf.text.valid, if (pipelineEng) PipelineCipher.latencyCycles(Nk) else IteratedCipher.latencyCycles(Nk))
-  io.encIntf.cipher.bits := io.encIntf.text.bits.map(if (pipelineEng) PipelineCipher(Nk)(_, expKey) else IteratedCipher(Nk)(_, io.encIntf.text.valid, expKey))
+  //io.encIntf.cipher.bits := io.encIntf.text.bits.map(if (pipelineEng) PipelineCipher(Nk)(_, expKey) else IteratedCipher(Nk)(_, io.encIntf.text.valid, expKey))
+  io.encIntf.cipher.bits := DontCare
 
   io.decIntf.text.valid := ShiftRegister(io.decIntf.cipher.valid, if (pipelineEng) PipelineInvCipher.latencyCycles(Nk) else IteratedInvCipher.latencyCycles(Nk))
-  io.decIntf.text.bits := io.decIntf.cipher.bits.map(if (pipelineEng) PipelineInvCipher(Nk)(_, expKey) else IteratedInvCipher(Nk)(_, io.decIntf.cipher.valid, expKey))
+  //io.decIntf.text.bits := io.decIntf.cipher.bits.map(if (pipelineEng) PipelineInvCipher(Nk)(_, expKey) else IteratedInvCipher(Nk)(_, io.decIntf.cipher.valid, expKey))
+  io.decIntf.text.bits := DontCare
 }
 
 class AesTrial(Nk: Int = 4) extends Module{
@@ -117,3 +119,40 @@ class AesTrial(Nk: Int = 4) extends Module{
   io.decEngReady := aesTop.io.decEngReady
 }
 
+
+class AesTopSimp(Nk: Int=4, pipelineEng:Boolean=true, encEngNum: Int=1, decEngNum: Int=1) extends Module {
+  val io = IO(new Bundle {
+    val Nr = Nk+6
+    val encIntf = new AesEngIntf(encEngNum)
+    val decIntf = Flipped(new AesEngIntf(decEngNum))
+    val key = Input(UInt((Nk*4*8).W))
+    val startKeyExp = Input(Bool())
+    val keyExpReady = Output(Bool())
+    val encEngReady = Output(Bool())
+    val decEngReady = Output(Bool())
+  })
+
+  val aesTop = Module(new AesTop(Nk, true, 1, 1))
+  // code for no-enc
+  //aesTop.io.encIntf.text.bits(0) := io.encIntf.text.bits(0)
+  //aesTop.io.encIntf.text.valid := false.B
+  //io.encIntf.cipher.bits(0) := aesTop.io.encIntf.cipher.bits(0)
+  //io.encIntf.cipher.valid := aesTop.io.encIntf.cipher.valid
+
+  //io.decIntf <> aesTop.io.decIntf
+
+  // code for no-dec
+  io.decIntf.text.bits(0) := aesTop.io.decIntf.text.bits(0)
+  io.decIntf.text.valid := aesTop.io.decIntf.text.valid
+  aesTop.io.decIntf.cipher.bits(0) := io.decIntf.cipher.bits(0)
+  aesTop.io.decIntf.cipher.valid := false.B
+
+  io.encIntf <> aesTop.io.encIntf
+  // end
+
+  io.key <> aesTop.io.key
+  io.startKeyExp <> aesTop.io.startKeyExp
+  io.keyExpReady <> aesTop.io.keyExpReady
+  io.encEngReady <> aesTop.io.encEngReady
+  io.decEngReady <> aesTop.io.decEngReady
+}

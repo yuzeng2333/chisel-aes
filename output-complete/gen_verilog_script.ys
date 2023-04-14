@@ -1,0 +1,5 @@
+read_verilog -sv ./AesTop.v
+
+prep -top AesTop
+hierarchy -check
+write_verilog -nodec -noattr AesTop_yosys.v
